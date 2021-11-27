@@ -101,7 +101,34 @@
 %% Of note is the shared affiliation of the first two authors, and the
 %% "authornote" and "authornotemark" commands
 %% used to denote shared contribution to the research.
-\author{Boi Biagio}
+\author{Giuseppe Polese}
+\orcid{0000-0002-8496-2658}
+\email{gpolese@unisa.it}
+\affiliation{%
+  \institution{Universit\'a degli studi di Salerno}
+  \streetaddress{}
+  \city{Salerno}
+  \state{}
+  \country{Italy}
+  \postcode{}
+}
+
+\author{Bernardo Breve}
+\orcid{0000-0002-3898-7512}
+\email{bbreve@unisa.it}
+\author{Stefano Cirillo}
+\orcid{0000-0003-0201-2753}
+\email{scirillo@unisa.it}
+\affiliation{%
+  \institution{Universit\'a degli studi di Salerno}
+  \streetaddress{}
+  \city{Salerno}
+  \state{}
+  \country{Italy}
+  \postcode{}
+}
+
+\author{Biagio Boi}
 \email{b.boi@studenti.unisa.it}
 \affiliation{%
   \institution{Universit\'a degli studi di Salerno}
@@ -113,14 +140,6 @@
 }
 
 %%
-%% By default, the full list of authors will be used in the page
-%% headers. Often, this list is too long, and will overlap
-%% other information printed in the page headers. This command allows
-%% the author to define a more concise list
-%% of authors' names for this purpose.
-\renewcommand{\shortauthors}{}
-
-%%
 %% The abstract is a short summary of the work to be presented in the
 %% article.
 \begin{abstract}
@@ -130,8 +149,7 @@ It's obvious that those devices simplified the life by creating a smart house wi
 There are a lot of cases in the United States in which the judge asked to Amazon to provide the recording done by the Echo Dot in order to find helpful
 evidences for the case; so, the question is: "It's possible to prevent the sending of sensible informations to the servers when the weak word is not pronunced?"
 
-In this project we will profile each packet exchanged between the Alexa Echo and the Server in order to certificate the existence of data sending also when
-not expressly requested from the users.
+In this project we will profile each packet exchanged between the Alexa Echo and the Server in order to classify the nature of the packets and consequentially we will use a machine learning model to discover when the Echo Dot is sending an inappropriate packet.
 \end{abstract}
 
 %%
@@ -156,7 +174,31 @@ not expressly requested from the users.
 %% information and builds the first part of the formatted document.
 \maketitle
 
+
 \section{Introduction}
+TODO
+
+\section{Alexa architecture \& security}
+The Alexa architecture isn't really easy to explain, we will resume just the keypoint in order to better understand the main functionalities for our purpose.
+\begin{enumerate}
+    \item Alexa is always in listening waiting for the weak word to be pronunced to start the recording of the voice;
+    \item From the weak word, till the end of commands, Alexa will record the speech and partially sends it to Amazon's servers to be analyzed;
+    \item Amazon will process the audio and breaks the command into individual sounds. It then consults a database containing various words pronunciations to find which words most closely 			correspond to the combination of the individual sounds.
+\end{enumerate}
+
+\section{Alexa flow of communication}
+TODO
+
+\section{Packets analysis}
+TODO
+
+\section{Dataset}
+TODO
+
+\section{Machine learning}
+TODO
+
+\section{Conclusions}
 TODO
 
 \end{document}
