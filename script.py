@@ -2,54 +2,36 @@ import pyshark
 import time
 from datetime import datetime
 
-# quando riceviamo hight_layer = data significa che stiamo inviando / ricevendo dati, se invece TCP è semplicemente un ACK
+
 def filter_packets(p, mac_add):
     val = None
-    try:
-        # add new ip here
-        if p.eth.dst == mac_add:
-            print("dst")
-            stranger_ip = p.ip.src
-            print(p.ip.dst)
-        elif p.eth.src == mac_add:
-            print("src")
-            stranger_ip = p.ip.dst
-            print(p.ip.src)
+    if p.eth.dst != mac_add and p.eth.src != mac_add:
+        return None
+
+    highest_layer = p.highest_layer
+    length = 0
+
+    if highest_layer == "SSL":
+        if p.ssl.get_field_value('record_content_type') == "21" or p.ssl.get_field_value('record_content_type') == "22":
+            print("Handshake")
+        elif p.ssl.get_field_value('record_content_type') == "23":
+            # Application Data Len = 41 allowed since is a sync packet
+            print("Application Data")
+        length = p.ssl.record_length
+    elif highest_layer == "TCP":
+        if p.tcp.flags_ack == 1:
+            print("Ack")
         else:
-            # print(p.eth.dst, p.eth.src)
-            return None
-        print(p.tcp.flags_ack)
-        # since tcp is always defined in the communication, let's see if is an ack or not
-        is_ack = p.tcp.ack
-        print(packet.highest_layer)
-        if packet.highest_layer == 'TCP' or packet.highest_layer == 'TLS':
-            if p.tcp.stream in stream_hour:
-                delta = p.sniff_time - stream_hour.get(p.tcp.stream)
-            elif p.tcp.stream not in stream_hour:
-                delta = p.sniff_time
-                stream_hour.update({p.tcp.stream: delta})
-                delta = 0
-            body_ = {'date': p.sniff_time,
-                     'delta': delta,
-                     'src': p.eth.src,
-                     'dst': p.eth.dst,
-                     'stranger': stranger_ip,
-                     'layer': p.highest_layer,
-                     'tcpsrcport': packet.tcp.srcport,
-                     'tcpdstport': packet.tcp.dstport,
-                     'stream': p.tcp.stream,
-                     'payload': p.captured_length,
-                     'hops': 0,
-                     'conv': val}
-            # to print body into a csv file
-        else:
-            delta = 0
-            body_ = {'date': p.sniff_time, 'delta': delta, 'src': p.eth.src, 'dst': p.eth.dst, 'stranger': stranger_ip,
-                     'layer': p.highest_layer, 'tcpsrcport': None, 'tcpdstport': None, 'stream': None,
-                     'payload': p.captured_length, 'hops': 0, 'conv': val}
-            # to print body into a csv file
-    except:
-        pass
+            print("TCP Data")
+        length = p.tcp.len
+    elif highest_layer == "DATA":
+        print("Data packets")
+        length = p.data.len
+    elif highest_layer == "ARP":
+        print("Not relevant")
+    else:
+        print(highest_layer)
+    print(str(length) + "\n")
 
 
 if __name__ == "__main__":
@@ -58,5 +40,4 @@ if __name__ == "__main__":
     mac_address = "08:7c:39:96:8a:8c"
 
     for packet in capture.sniff_continuously():
-        print(datetime.now().strftime("%H:%M:%S"))
         filter_packets(packet, mac_address)
