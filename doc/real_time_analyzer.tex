@@ -182,8 +182,13 @@ TODO
 The Alexa architecture isn't really easy to explain, we will resume just the keypoint in order to better understand the main functionalities for our purpose.
 \begin{enumerate}
     \item Alexa is always in listening waiting for the weak word to be pronunced to start the recording of the voice;
-    \item From the weak word, till the end of commands, Alexa will record the speech and partially sends it to Amazon's servers to be analyzed;
-    \item Amazon will process the audio and breaks the command into individual sounds. It then consults a database containing various words pronunciations to find which words most closely 			correspond to the combination of the individual sounds.
+    \item From the weak word, till the end of commands, Alexa will record the speech and partially sends it to Alexa Voice Service, that can be considered as the brain of Alexa;
+    \item Alexa Voice Service will process the audio using Natural Language Processing and Natural Language Understanding in order to retrieve a response for the given request.
+	\begin{enumerate}
+		\item Natural Language Processing (NLP) improve the Word Segmentation that separate a chunk of continuous text into separate words.
+		\item Natural Language Understanding (NLU) is a subtopic of NLP and uses the AI to map text to the meaning\cite{NLU} in order to understand the speech and the request.
+	\end{enumerate}
+    \item Depending on the sent command, the Voice Service will take an action (turn on the light) or send the information back to the device and Alexa may speech.
 \end{enumerate}
 
 \section{Alexa flow of communication}
@@ -200,6 +205,9 @@ TODO
 
 \section{Conclusions}
 TODO
+
+\bibliographystyle{ACM-Reference-Format}
+\bibliography{biblio_ref}
 
 \end{document}
 \endinput
