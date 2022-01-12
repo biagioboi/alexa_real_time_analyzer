@@ -1,65 +1,83 @@
+import json
+
 import pyshark
 import time
 from datetime import datetime
 
 spotify_ip = None
-
+stream_hour = {}
 
 def filter_packets(p, mac_add):
-    global spotify_ip
+    global spotify_ip, stream_hour
     # Analyze just the sent packets
     if p.eth.src != mac_add:
         return None
     highest_layer = p.highest_layer
-    length = 0
     try:
+        kind_of_packet = None
+        packet_len = p.captured_length
+        delta = 0
         if highest_layer == "SSL":
             content_type = int(p.ssl.record_content_type)
-            # 21 or 22 means handshake
-            if content_type == 21 or content_type == 22:
-                print("Handshake")
+            # 20 means change spec cipher 21 or 22 means handshake
+            if content_type == 20 or content_type == 21 or content_type == 22:
+                kind_of_packet = "handshake"
             # 23 means Application Data
             elif content_type == 23:
                 # Application Data Len = 41 allowed since is a sync packet, also Len = 28 it's syn
                 if int(p.ssl.record_length) == 41 or int(p.ssl.record_length) == 28:
-                    print("Syn")
+                    kind_of_packet = "syn"
                 else:
-                    print(p.ip.dst)
-                    print("Application Data")
-            length = p.ssl.record_length
+                    kind_of_packet = "app_data"
+            else:
+                print(content_type)
         elif highest_layer == "TCP":
             # if the ack flags it's 1 means that contains a flag, but we need to check if contains also payload
             if int(p.tcp.flags_ack) == 1 and int(p.tcp.len) == 0:
                 # we're in ack, ack of what ?
                 if p.ip.dst == spotify_ip:
-                    print("Spotify Ack")
+                    kind_of_packet = "ack"
                 else:
-                    print("Ack")
+                    kind_of_packet = "ack"
             else:
                 # if len = 11 means that is a syn packet with Google server
                 if int(p.tcp.len) == 11:
-                    print("Syn")
+                    kind_of_packet = "syn"
                 elif int(p.tcp.len) == 0:
-                    print("Retransmission Packet")
+                    kind_of_packet = "retransmit"
                 else:
-                    print("TCP Data")
-            length = p.tcp.len
+                    kind_of_packet = "TCP Data"
         elif highest_layer == "DATA":
-            print("Data packets")
-            print(p.data.tcp_reassembled_length)
-            length = p.data.len
-        elif highest_layer == "ARP":
-            print("Not relevant")
+            if p.tcp.dstport == "4070": # used for synchronization
+                kind_of_packet = "syn"
+            else:
+                kind_of_packet = "app_data"
         elif highest_layer == "HTTP":
             # check if is a song by checking the endpoint if contains "audio"
             request_uri = p.http.request_uri
             if "audio" in request_uri:
                 # Store the ip of provider of music
                 spotify_ip = p.ip.dst
-                print("Request for a song")
+                kind_of_packet = "spotify_request"
+            else:
+                kind_of_packet = "http_request"
+        else: # no important packet has been recorded, we can return
+            return None
+        # store the time (in milliseconds) occurred from the last communication with the same server
+        delta = 0
+        if highest_layer == "TCP" or highest_layer == "SSL":
+            if p.tcp.stream in stream_hour:
+                delta = p.sniff_time - stream_hour.get(p.tcp.stream)
+                delta = int(delta.total_seconds() * 1000)
+                stream_hour.update({p.tcp.stream:p.sniff_time})
+            else:
+                delta = p.sniff_time
+                stream_hour.update({p.tcp.stream:delta})
+                delta = 0
+        record = {"date": p.sniff_time, "length": packet_len, "type": kind_of_packet, "dst": p.ip.dst, "dstport": p.tcp.dstport, "highest_layer": highest_layer, "delta": delta}
+        print(json.dumps(record, indent=2, default=str) + "\n")
     except AttributeError:
         print(p[highest_layer].field_names)
-    print(str(length) + "\n")
 
 
 if __name__ == "__main__":
