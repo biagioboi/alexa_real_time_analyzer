@@ -4,26 +4,27 @@ from datetime import datetime
 
 spotify_ip = None
 
-def filter_packets(p, mac_add):
-    val = None
-    global spotify_ip
 
+def filter_packets(p, mac_add):
+    global spotify_ip
+    # Analyze just the sent packets
     if p.eth.src != mac_add:
         return None
-
     highest_layer = p.highest_layer
     length = 0
-
     try:
         if highest_layer == "SSL":
-            record_length = int(p.ssl.record_content_type)
-            if record_length == 21 or record_length == 22:
+            content_type = int(p.ssl.record_content_type)
+            # 21 or 22 means handshake
+            if content_type == 21 or content_type == 22:
                 print("Handshake")
-            elif record_length == 23:
-                # Application Data Len = 41 allowed since is a sync packet
-                if int(p.ssl.record_length) == 41:
+            # 23 means Application Data
+            elif content_type == 23:
+                # Application Data Len = 41 allowed since is a sync packet, also Len = 28 it's syn
+                if int(p.ssl.record_length) == 41 or int(p.ssl.record_length) == 28:
                     print("Syn")
                 else:
+                    print(p.ip.dst)
                     print("Application Data")
             length = p.ssl.record_length
         elif highest_layer == "TCP":
@@ -35,10 +36,17 @@ def filter_packets(p, mac_add):
                 else:
                     print("Ack")
             else:
-                print("TCP Data")
+                # if len = 11 means that is a syn packet with Google server
+                if int(p.tcp.len) == 11:
+                    print("Syn")
+                elif int(p.tcp.len) == 0:
+                    print("Retransmission Packet")
+                else:
+                    print("TCP Data")
             length = p.tcp.len
         elif highest_layer == "DATA":
             print("Data packets")
+            print(p.data.tcp_reassembled_length)
             length = p.data.len
         elif highest_layer == "ARP":
             print("Not relevant")

@@ -192,10 +192,28 @@ The Alexa architecture isn't really easy to explain, we will resume just the key
 \end{enumerate}
 
 \section{Alexa flow of communication}
-TODO
+Describe here the entire flow of communication
 
 \section{Packets analysis}
-TODO
+In order to create a good dataset we will classify the packets sent by the Echo.
+The classification it's been done using a Python script, and an accurate review of the data produced.
+The main classes considered are the following:
+\begin{itemize}
+  \item Handshake
+  \item Syn
+  \item Application Data
+  \item Spotify Ack
+  \item Ack
+  \item TCP Data
+  \item Retry Packet
+  \item Not Relevant
+\end{itemize}
+When the first classification is completed, we need to label the legitimate Application Data packets by manually analyzing in which case they have been sended, in particular this kind of packet can be sended in three context:
+\begin{itemize}
+  \item First Encrypted Packet after SSL Handshake
+  \item Data needed for the legitimate communication between Echo and Server
+  \item Illegitimate Data
+\end{itemize}
 
 \section{Dataset}
 TODO
