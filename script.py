@@ -1,13 +1,12 @@
 import json
-
+import csv
 import pyshark
-import time
-from datetime import datetime
+from datetime import date
 
 spotify_ip = None
 stream_hour = {}
 
-def filter_packets(p, mac_add):
+def filter_packets(p, mac_add, writer):
     global spotify_ip, stream_hour
     # Analyze just the sent packets
     if p.eth.src != mac_add:
@@ -28,7 +27,7 @@ def filter_packets(p, mac_add):
                 if int(p.ssl.record_length) == 41 or int(p.ssl.record_length) == 28:
                     kind_of_packet = "syn"
                 else:
-                    kind_of_packet = "app_data"
+                    kind_of_packet = "illegitimate_packet"
             else:
                 print(content_type)
         elif highest_layer == "TCP":
@@ -74,7 +73,11 @@ def filter_packets(p, mac_add):
                 delta = p.sniff_time
                 stream_hour.update({p.tcp.stream:delta})
                 delta = 0
-        record = {"date": p.sniff_time, "length": packet_len, "type": kind_of_packet, "dst": p.ip.dst, "dstport": p.tcp.dstport, "highest_layer": highest_layer, "delta": delta}
+        record = {"date": p.sniff_time, "length": packet_len, "dst": p.ip.dst, "dstport": p.tcp.dstport, "highest_layer": highest_layer, "delta": delta, "type": kind_of_packet}
+        values = []
+        for x in record:
+            values.append(record[x])
+        writer.writerow(values)
         print(json.dumps(record, indent=2, default=str) + "\n")
     except AttributeError:
         print(p[highest_layer].field_names)
@@ -84,6 +87,9 @@ if __name__ == "__main__":
     # insert here the name of the internet interface you want to sniff and mac address of device to sniff
     capture = pyshark.LiveCapture(interface='Connessione alla rete locale (LAN)* 11')
     mac_address = "08:7c:39:96:8a:8c"
-
-    for packet in capture.sniff_continuously():
-        filter_packets(packet, mac_address)
+    today = date.today()
+    d1 = today.strftime("%d_%m")
+    with open('dataset' + d1 + '.csv', 'a+', encoding='UTF8', newline='') as f:
+        writer = csv.writer(f)
+        for packet in capture.sniff_continuously():
+            filter_packets(packet, mac_address, writer)

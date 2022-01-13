@@ -199,8 +199,14 @@ In order to create a good dataset we will classify the packets sent by the Echo.
 The classification it's been done using a Python script, and an accurate review of the data produced.
 The main classes considered are the following:
 \begin{itemize}
-  \item Handshake
-  \item Syn
+  \item \textbf{handshake}: this packet is sent at the beginning of SSL/TLS communication between the Echo and a server.
+  Echo changes server very frequently, about each 2 minutes.
+  \item \textbf{syn}: two synchronization packets are sent from the device in a fixed interval.
+  In a more detailed way, Echo communicates with two different server with different interval:
+  \begin{itemize}
+    \item A packet of 100 byte is sent each 30 seconds (30002 milliseconds)
+    \item A packet of 99 byte is sent each 90 seconds (90820 milliseconds)
+  \end{itemize}
   \item Application Data
   \item Spotify Ack
   \item Ack
