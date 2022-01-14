@@ -191,38 +191,55 @@ The Alexa architecture isn't really easy to explain, we will resume just the key
     \item Depending on the sent command, the Voice Service will take an action (turn on the light) or send the information back to the device and Alexa may speech.
 \end{enumerate}
 
+\section{State of Art}
+
 \section{Alexa flow of communication}
 Describe here the entire flow of communication
 
 \section{Packets analysis}
 In order to create a good dataset we will classify the packets sent by the Echo.
-The classification it's been done using a Python script, and an accurate review of the data produced.
-The main classes considered are the following:
+In particular is possible to classify the type of packet by looking at flags, packet size and protocol used.
+There are x types of packet that will later be included in the dataset as feature, for this reason we will assign a number to each type:
 \begin{itemize}
-  \item \textbf{handshake}: this packet is sent at the beginning of SSL/TLS communication between the Echo and a server.
-  Echo changes server very frequently, about each 2 minutes.
-  \item \textbf{syn}: two synchronization packets are sent from the device in a fixed interval.
-  In a more detailed way, Echo communicates with two different server with different interval:
-  \begin{itemize}
+  \item \textbf{0 - handshake}: At the beginning of each new SSL/TLS communication between the Echo and the Server there are different packets exchanged in order to establish a secure communication.
+  These packets can be easily identified by the protocol used for the communication (TLS) and by checking the flags related to the content of the message, in particular, the possible flags are:
+  \begin{enumerate}
+    \item Change Cipher (20).
+    \item Server Hello - Show Certificate - Encrypted Message (21).
+    \item Alert (22).
+  \end{enumerate}
+  Echo changes communication Server very frequently, about each 2 minutes.
+  \item \textbf{1 - syn}: Two packets with fixed length are sent from the device in a fixed interval, for this reason we believe that these are synchronization packets.
+  These packets may be sent to guarantee the synchronization with the Amazon Alexa application and with the Amazon servers.
+  There are two possible synchronization packets:
+  \begin{enumerate}
     \item A packet of 100 byte is sent each 30 seconds (30002 milliseconds)
     \item A packet of 99 byte is sent each 90 seconds (90820 milliseconds)
-  \end{itemize}
-  \item Application Data
-  \item Spotify Ack
-  \item Ack
-  \item TCP Data
-  \item Retry Packet
-  \item Not Relevant
+  \end{enumerate}
+  The communication always happens using SSL/TLS, so it's impossible to decrypt the content of these message and confirm that is securely a synchronization packet.
+  \item \textbf{2 - ack}: These are the classical packets used to confirm that the received packets are valid and successfully received.
+  \item \textbf{3 - retransmit}: These packets are used to retransmit the data that didn't received an ack, usually this happens when the Echo try to communicate with other Amazon devices (Fire Stick for ex.) but doesn't receive response.
+  \item \textbf{4 - app\_data}: These packets are relative to the normal communication of the Echo and can be easily recognized since the communication happens over TLS/SSL protocol and by checking the flag of the considered packet that is equal to 23.
+  In particular, we will include in this class all the communication packets that include also recording of voice occurred during the conversation between the Echo and the final costumer.
+  \item \textbf{5 - not\_relevant}: We will include in this category all packets that don't match any of the other categories, and are not relevant for our study.
 \end{itemize}
-When the first classification is completed, we need to label the legitimate Application Data packets by manually analyzing in which case they have been sended, in particular this kind of packet can be sended in three context:
+It's import to underline that the packets classified as app\_data may include both legitimate or illegitimate packets.
+The illegitimate packets include all those packets sent in a context in which no application date should be sent to the Server by considering the environmental variables (no wake word pronounced) and hardware aspects (microphone muted by pressing the relative button); for this reason is important to introduce some features related to these aspects.
+The aim is to distinguish three kind of packets:
 \begin{itemize}
-  \item First Encrypted Packet after SSL Handshake
-  \item Data needed for the legitimate communication between Echo and Server
-  \item Illegitimate Data
+  \item \textbf{Not Justified}: packets sent to the Server in a context in which the Echo is unable to send these data by considering the hardware aspects.
+  \item \textbf{Justified}: packets sent to the Server without any interaction between the Echo and the Customer, but the Echo is able to record.
+  \item \textbf{Expected}: packets sent to the Server since an interaction between the Echo and the Customer happened.
 \end{itemize}
+Clearly, the only allowed packets are those classified as "Expected".
 
 \section{Dataset}
-TODO
+In order to create a valid and well-distributed dataset we analyzed the behavior of the Echo Dot in different context, in particular by considering different cases:
+\begin{enumerate}
+  \item Microphone mute
+  \item No wake word pronounced
+  \item Stream of data: for example by asking a song
+\end{enumerate}
 
 \section{Machine learning}
 TODO
