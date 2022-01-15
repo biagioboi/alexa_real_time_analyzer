@@ -6,7 +6,7 @@ from datetime import date
 spotify_ip = None
 stream_hour = {}
 
-def filter_packets(p, mac_add, writer):
+def filter_packets(p, mac_add, writer, microphone):
     global spotify_ip, stream_hour
     # Analyze just the sent packets
     if p.eth.src != mac_add:
@@ -16,6 +16,7 @@ def filter_packets(p, mac_add, writer):
         kind_of_packet = None
         packet_len = p.captured_length
         delta = 0
+        content_type = None
         if highest_layer == "SSL":
             content_type = int(p.ssl.record_content_type)
             # 20 means change spec cipher 21 or 22 means handshake
@@ -27,7 +28,7 @@ def filter_packets(p, mac_add, writer):
                 if int(p.ssl.record_length) == 41 or int(p.ssl.record_length) == 28:
                     kind_of_packet = "syn"
                 else:
-                    kind_of_packet = "illegitimate_packet"
+                    kind_of_packet = "not_justified"
             else:
                 print(content_type)
         elif highest_layer == "TCP":
@@ -45,21 +46,21 @@ def filter_packets(p, mac_add, writer):
                 elif int(p.tcp.len) == 0:
                     kind_of_packet = "retransmit"
                 else:
-                    kind_of_packet = "TCP Data"
+                    kind_of_packet = "not_relevant"
         elif highest_layer == "DATA":
             if p.tcp.dstport == "4070": # used for synchronization
                 kind_of_packet = "syn"
             else:
-                kind_of_packet = "app_data"
+                kind_of_packet = "not_relevant"
         elif highest_layer == "HTTP":
             # check if is a song by checking the endpoint if contains "audio"
             request_uri = p.http.request_uri
             if "audio" in request_uri:
                 # Store the ip of provider of music
                 spotify_ip = p.ip.dst
-                kind_of_packet = "spotify_request"
+                kind_of_packet = "not_relevant"
             else:
-                kind_of_packet = "http_request"
+                kind_of_packet = "not_relevant"
         else: # no important packet has been recorded, we can return
             return None
         # store the time (in milliseconds) occurred from the last communication with the same server
@@ -73,7 +74,7 @@ def filter_packets(p, mac_add, writer):
                 delta = p.sniff_time
                 stream_hour.update({p.tcp.stream:delta})
                 delta = 0
-        record = {"date": p.sniff_time, "length": packet_len, "dst": p.ip.dst, "dstport": p.tcp.dstport, "highest_layer": highest_layer, "delta": delta, "type": kind_of_packet}
+        record = {"date": p.sniff_time, "length": packet_len, "dst": p.ip.dst, "dstport": p.tcp.dstport, "highest_layer": highest_layer, "delta": delta, "ack_flag": int(p.tcp.flags_ack), "microphone": microphone, "content_type": content_type, "class": kind_of_packet}
         values = []
         for x in record:
             values.append(record[x])
@@ -92,4 +93,5 @@ if __name__ == "__main__":
     with open('dataset' + d1 + '.csv', 'a+', encoding='UTF8', newline='') as f:
         writer = csv.writer(f)
         for packet in capture.sniff_continuously():
-            filter_packets(packet, mac_address, writer)
+            filter_packets(packet, mac_address, writer, 0)
+
