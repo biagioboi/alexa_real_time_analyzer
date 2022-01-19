@@ -6,7 +6,7 @@ from datetime import date
 spotify_ip = None
 stream_hour = {}
 
-def filter_packets(p, mac_add, writer, microphone):
+def filter_packets(p, mac_add, writer, microphone, synchronized):
     global spotify_ip, stream_hour
     # Analyze just the sent packets
     if p.eth.src != mac_add:
@@ -74,7 +74,7 @@ def filter_packets(p, mac_add, writer, microphone):
                 delta = p.sniff_time
                 stream_hour.update({p.tcp.stream:delta})
                 delta = 0
-        record = {"date": p.sniff_time, "length": packet_len, "dst": p.ip.dst, "dstport": p.tcp.dstport, "highest_layer": highest_layer, "delta": delta, "ack_flag": int(p.tcp.flags_ack), "microphone": microphone, "content_type": content_type, "class": kind_of_packet}
+        record = {"date": p.sniff_time, "length": packet_len, "dst": p.ip.dst, "dstport": p.tcp.dstport, "highest_layer": highest_layer, "delta": delta, "ack_flag": int(p.tcp.flags_ack), "microphone": microphone, "content_type": content_type, "synchronized": synchronized, "class": kind_of_packet}
         values = []
         for x in record:
             values.append(record[x])
@@ -93,5 +93,5 @@ if __name__ == "__main__":
     with open('dataset' + d1 + '.csv', 'a+', encoding='UTF8', newline='') as f:
         writer = csv.writer(f)
         for packet in capture.sniff_continuously():
-            filter_packets(packet, mac_address, writer, 0)
+            filter_packets(packet, mac_address, writer, 0, 1)
 

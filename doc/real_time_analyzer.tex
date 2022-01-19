@@ -228,8 +228,8 @@
         In particular, we will include in this class all the communication packets that include also recording of voice occurred during the conversation between the Echo and the final costumer.
         \item \textbf{not\_relevant}: We will include in this category all packets that don't match any of the other categories, and are not relevant for our study.
     \end{enumerate}
-    It's import to underline that the packets classified as app\_data may include both legitimate or illegitimate packets.
-    The illegitimate packets include all those packets sent in a context in which no application date should be sent to the Server by considering the environmental variables (no wake word pronounced) and hardware aspects (microphone muted by pressing the relative button); for this reason is important to introduce some features related to these aspects.
+    It's import to underline that the packets classified as app\_data may include both authorized and not authorized packets.
+    The unauthorized packets include all those packets sent in a context in which no application date should be sent to the Server by considering the environmental variables (no wake word pronounced) and hardware aspects (microphone muted by pressing the relative button); for this reason is important to introduce some features related to these aspects.
     The aim is to distinguish three kind of packets:
     \begin{itemize}
         \item \textbf{not\_justified}: packets sent to the Server in a context in which the Echo is unable to send these data by considering the hardware aspects.
