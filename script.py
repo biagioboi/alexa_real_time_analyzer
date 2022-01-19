@@ -93,5 +93,6 @@ if __name__ == "__main__":
     with open('dataset' + d1 + '.csv', 'a+', encoding='UTF8', newline='') as f:
         writer = csv.writer(f)
         for packet in capture.sniff_continuously():
-            filter_packets(packet, mac_address, writer, 0, 1)
+
+            filter_packets(packet, mac_address, writer, 1, 1)
 

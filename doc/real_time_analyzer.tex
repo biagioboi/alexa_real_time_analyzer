@@ -147,10 +147,10 @@
         Nowadays, the introduction of home virtual assistents like Alexa Echo or Google Home became a practice, just considering that over 27\% of families owns one.
 
         It's obvious that those devices simplified the life by creating a smart house with few money; but what's the impact these devices have on people privacy?
-        There are a lot of cases in the United States in which the judge asked to Amazon to provide the recording done by the Echo Dot in order to find helpful
+        There are a lot of cases in the United States in which the judge asked to Amazon to provide the recording done by the Echo in order to find helpful
         evidences for the case; so, the question is: "It's possible to prevent the sending of sensible informations to the servers when the weak word is not pronunced?"
 
-        In this project we will profile each packet exchanged between the Alexa Echo and the Server in order to classify the nature of the packets and consequentially we will use a machine learning model to discover when the Echo Dot is sending an inappropriate packet.
+        In this project we will profile each packet exchanged between the Alexa Echo and the Server in order to classify the nature of the packets and consequentially we will use a machine learning model to discover when the Echo is sending an inappropriate packet.
     \end{abstract}
 
 %%
@@ -177,7 +177,17 @@
 
 
     \section{Introduction}
-    TODO
+    The evolution of smart devices over last years has increased exponentially and the introduction of these devices within the house is progressively growing.
+    The major problem related to these devices is that usually the privacy is not considered, although there are a lot of regulations (just see the GDPR) that describe how
+    the user data have to be stored and who can access to these data.
+    Starting from these two points I decided to understand what happens within the context of smart assistance device such as Alexa Echo.
+    Reading on the Amazon Alexa website it's clear how and when they send data to the Amazon Cloud, but in opposition we have some cases in which the recording done by the Echo have been used during the processes in order to extract some evidence.
+    In order to clarify this aspect and the role of the smart assistance devices I decided to analyze the outgoing traffic from the device and classify it by considering the environmental conditions.
+    The first phase of this analysis consist in understand which kind of packets are sent from the device in order to create a complete dataset of packets sent by the device; during the second phase I try to understand if exist a pattern that identify the packets that souldn't be sent to the Cloud by creating a machine learning model able to identify them.
+
+
+    \section{State of Art}
+    Wirte here all papers found related to the project
 
 
     \section{Alexa architecture \& security}
@@ -192,14 +202,15 @@
         \end{enumerate}
         \item Depending on the sent command, the Voice Service will take an action (turn on the light) or send the information back to the device and Alexa may speech.
     \end{enumerate}
-
-
-    \section{State of Art}
+    All the communications between the Echo and the Server are secured by using an SSL/TLS encryption schema.
+    In particular, the Echo looks for an available Amazon Server each 3 minutes and then establish a connection (by following the SSL Handshake).
+    Once the communication has been initialized it starts to send different packets of different size always encrypted; clearly, these pakcets may contains both authorized and unauthorized data.
+    It's important to underline that all the recordings are available on the Amazon platform and can be reproduced and deleted whenever the user wants only by accessing to the platform and this guarantee more transparency to the user that can directly handle all the recordings.
+    The point is that here we found only the recordings done by the Echo in an authorized way (when the wake word it's been pronounced), but this doesn't imply that some other recordings can exist and be stored in hidden way.
 
 
     \section{Alexa flow of communication}
     Describe here the entire flow of communication
-
 
     \section{Packets analysis}
     In order to create a good dataset we will classify the packets sent by the Echo.
@@ -240,12 +251,12 @@
 
 
     \section{Dataset}
-    In order to create a valid and well-distributed dataset we analyzed the behavior of the Echo Dot in different context, in particular by considering different cases:
+    In order to create a valid and well-distributed dataset we analyzed the behavior of the Echo in different context, in particular by considering different cases:
     \begin{enumerate}
         \item \textbf{Microphone mute}: when the hardware button is pressed and the device should be unable to send application data to the server.
         \begin{figure}[h!]
             \includegraphics[width=\linewidth]{img/alexa_red.jpg}
-            \caption{Echo Dot when the disable microphone button has been pressed.}
+            \caption{Echo when the disable microphone button has been pressed.}
             \label{fig:Alexa_red_led}
         \end{figure}
         \item \textbf{No wake word pronounced}: when the device is able to listen the voice but shouldn't send to the Server any packets of application data.
@@ -257,7 +268,7 @@
             \item Add water to the cart.
         \end{enumerate}
         All these questions or requests expect a response from the Server, so a huge amount of ack will be sent from the device.
-        \item \textbf{Stream of data}: when the user request for a song and the Echo Dot start to stream it.
+        \item \textbf{Stream of data}: when the user request for a song and the Echo start to stream it.
     \end{enumerate}
 
 
