@@ -28,7 +28,7 @@ def filter_packets(p, mac_add, writer, microphone, synchronized):
                 if int(p.ssl.record_length) == 41 or int(p.ssl.record_length) == 28:
                     kind_of_packet = "syn"
                 else:
-                    kind_of_packet = "not_justified"
+                    kind_of_packet = "justified"
             else:
                 print(content_type)
         elif highest_layer == "TCP":
@@ -74,6 +74,14 @@ def filter_packets(p, mac_add, writer, microphone, synchronized):
                 delta = p.sniff_time
                 stream_hour.update({p.tcp.stream:delta})
                 delta = 0
+        if highest_layer == "SSL":
+            highest_layer = 0.0
+        elif highest_layer == "TCP":
+            highest_layer = 1.0
+        elif highest_layer == "DATA":
+            highest_layer = 2.0
+        else:
+            highest_layer = 3.0
         record = {"date": p.sniff_time, "length": packet_len, "dst": p.ip.dst, "dstport": p.tcp.dstport, "highest_layer": highest_layer, "delta": delta, "ack_flag": int(p.tcp.flags_ack), "microphone": microphone, "content_type": content_type, "synchronized": synchronized, "class": kind_of_packet}
         values = []
         for x in record:
@@ -94,5 +102,5 @@ if __name__ == "__main__":
         writer = csv.writer(f)
         for packet in capture.sniff_continuously():
 
-            filter_packets(packet, mac_address, writer, 1, 1)
+            filter_packets(packet, mac_address, writer, 0, 1)
 

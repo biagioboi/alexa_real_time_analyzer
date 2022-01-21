@@ -1,43 +1,8 @@
 % !TEX TS-program = pdflatex
 % !TEX encoding = UTF-8 Unicode
-%%
-%% This is file `sample-sigconf.tex',
-%% generated with the docstrip utility.
-%%
-%% The original source files were:
-%%
-%% samples.dtx  (with options: `sigconf')
-%% 
-%% IMPORTANT NOTICE:
-%% 
-%% For the copyright see the source file.
-%% 
-%% Any modified versions of this file must be renamed
-%% with new filenames distinct from sample-sigconf.tex.
-%% 
-%% For distribution of the original source see the terms
-%% for copying and modification in the file samples.dtx.
-%% 
-%% This generated file may be distributed as long as the
-%% original source files, as listed above, are part of the
-%% same distribution. (The sources need not necessarily be
-%% in the same archive or directory.)
-%%
-%%
-%% Commands for TeXCount
-%TC:macro \cite [option:text,text]
-%TC:macro \citep [option:text,text]
-%TC:macro \citet [option:text,text]
-%TC:envir table 0 1
-%TC:envir table* 0 1
-%TC:envir tabular [ignore] word
-%TC:envir displaymath 0 word
-%TC:envir math 0 word
-%TC:envir comment 0 0
-%%
-%%
-%% The first command in your LaTeX source must be the \documentclass command.
+
 \documentclass[sigconf]{acmart}
+\captionsetup{font=footnotesize}
 \usepackage{graphicx}
 
 \settopmatter{printacmref=false} % Removes citation information below abstract
@@ -50,62 +15,25 @@
     \providecommand\BibTeX{{%
         \normalfont B\kern-0.5em{\scshape i\kern-0.25em b}\kern-0.8em\TeX}}}
 
-%% Rights management information.  This information is sent to you
-%% when you complete the rights form.  These commands have SAMPLE
-%% values in them; it is your responsibility as an author to replace
-%% the commands and values with those provided to you when you
-%% complete the rights form.
 \setcopyright{none}
 \copyrightyear{}
 \acmYear{}
 \acmDOI{}
 
-%% These commands are for a PROCEEDINGS abstract or paper.
 \acmConference[Computer Science]{}{University of Salerno}{UNISA}
 \acmBooktitle{Real time Alexa packets profiling analysis}
 \acmPrice{}
 \acmISBN{}
 
-
-%%
-%% Submission ID.
-%% Use this when submitting an article to a sponsored event. You'll
-%% receive a unique submission ID from the organizers
-%% of the event, and this ID should be used as the parameter to this command.
-%%\acmSubmissionID{123-A56-BU3}
-
-%%
-%% The majority of ACM publications use numbered citations and
-%% references.  The command \citestyle{authoryear} switches to the
-%% "author year" style.
-%%
-%% If you are preparing content for an event
-%% sponsored by ACM SIGGRAPH, you must use the "author year" style of
-%% citations and references.
-%% Uncommenting
-%% the next command will enable that style.
-%%\citestyle{acmauthoryear}
-
-%%
-%% end of the preamble, start of the body of the document source.
 \begin{document}
 
-%%
-%% The "title" command has an optional parameter,
-%% allowing the author to define a "short title" to be used in page headers.
     \title{Real time Alexa packets profiling analysis}
 
 
-%%
-%% The "author" command and its associated commands are used to define
-%% the authors and their affiliations.
-%% Of note is the shared affiliation of the first two authors, and the
-%% "authornote" and "authornotemark" commands
-%% used to denote shared contribution to the research.
     \author{Giuseppe Polese}
     \orcid{0000-0002-8496-2658}
     \email{gpolese@unisa.it}
-    \affiliation{%
+    \affiliation{
         \institution{Universit\'a degli studi di Salerno}
         \streetaddress{}
         \city{Salerno}
@@ -131,7 +59,7 @@
 
     \author{Biagio Boi}
     \email{b.boi@studenti.unisa.it}
-    \affiliation{%
+    \affiliation{
         \institution{Universit\'a degli studi di Salerno}
         \streetaddress{}
         \city{Salerno}
@@ -140,9 +68,6 @@
         \postcode{}
     }
 
-%%
-%% The abstract is a short summary of the work to be presented in the
-%% article.
     \begin{abstract}
         Nowadays, the introduction of home virtual assistents like Alexa Echo or Google Home became a practice, just considering that over 27\% of families owns one.
 
@@ -153,14 +78,8 @@
         In this project we will profile each packet exchanged between the Alexa Echo and the Server in order to classify the nature of the packets and consequentially we will use a machine learning model to discover when the Echo is sending an inappropriate packet.
     \end{abstract}
 
-%%
-%% Keywords. The author(s) should pick words that accurately describe
-%% the work being presented. Separate the keywords with commas.
     \keywords{data analytics, alexa, packets profiling}
 
-%% A "teaser" image appears between the author and affiliation
-%% information and the body of the document, and typically spans the
-%% page.
 
     \begin{teaserfigure}
         \rule{\linewidth}{1mm}
@@ -178,8 +97,7 @@
 
     \section{Introduction}
     The evolution of smart devices over last years has increased exponentially and the introduction of these devices within the house is progressively growing.
-    The major problem related to these devices is that usually the privacy is not considered, although there are a lot of regulations (just see the GDPR) that describe how
-    the user data have to be stored and who can access to these data.
+    The major problem related to these devices is that usually the privacy is not considered, although there are a lot of regulations (just see the GDPR) that describe how the user data have to be stored and who can access to these data.
     Starting from these two points I decided to understand what happens within the context of smart assistance device such as Alexa Echo.
     Reading on the Amazon Alexa website it's clear how and when they send data to the Amazon Cloud, but in opposition we have some cases in which the recording done by the Echo have been used during the processes in order to extract some evidence.
     In order to clarify this aspect and the role of the smart assistance devices I decided to analyze the outgoing traffic from the device and classify it by considering the environmental conditions.
@@ -187,7 +105,9 @@
 
 
     \section{State of Art}
-    Wirte here all papers found related to the project
+    During the last years different research have been done, related to different aspects of the security and privacy within the IoT context.
+    F. Z. Berrehili and A. Belmekki \cite{berrehili} have done a study on the Privacy Preservation in the IoT context that shows all the risks directly related to the architecture; in particular, it underlines the need to always guarantee the anonymization of sensibile data by hidding the correlation between the data itself and the person who produced these data (that is also one of the principle of GDPR).
+    Despite these studies, there is an huge percentage of devices that do not consider as serious all the aspects related to the privacy, in particular J. Liu and W. Sun \cite{liu} show different attacks againit werables devices at different levels of the ISO/OSI stack and considering different aspects of privacy and security like data integrity, authentication, authroization, etc. The study shows a lot of attacks aim at sniff the packets during the communication in order to collect sensible informations; this seems to be caused from the problem related to the poor encryption mechanisms implemented into the smart devices.
 
 
     \section{Alexa architecture \& security}
@@ -209,9 +129,6 @@
     The point is that here we found only the recordings done by the Echo in an authorized way (when the wake word it's been pronounced), but this doesn't imply that some other recordings can exist and be stored in hidden way.
 
 
-    \section{Alexa flow of communication}
-    Describe here the entire flow of communication
-
     \section{Packets analysis}
     In order to create a good dataset we will classify the packets sent by the Echo.
     In particular is possible to classify the type of packet by looking at flags, packet size and protocol used.
@@ -224,15 +141,7 @@
             \item Server Hello - Show Certificate - Encrypted Message (21).
             \item Alert (22).
         \end{enumerate}
-        Echo changes communication Server very frequently, about each 2 minutes.
-        \item \textbf{syn}: Two packets with fixed length are sent from the device in a fixed interval, for this reason we believe that these are synchronization packets.
-        These packets may be sent to guarantee the synchronization with the Amazon Alexa application and with the Amazon servers.
-        There are two possible synchronization packets:
-        \begin{enumerate}
-            \item A packet of 100 byte is sent each 30 seconds (30002 milliseconds)
-            \item A packet of 99 byte is sent each 90 seconds (90820 milliseconds)
-        \end{enumerate}
-        The communication always happens using SSL/TLS, so it's impossible to decrypt the content of these message and confirm that is securely a synchronization packet.
+        \item \textbf{syn}: Packets with fixed length are sent from the device in a fixed interval, seems that them are used to synchronize the Echo to the Server.
         \item \textbf{ack}: These are the classical packets used to confirm that the received packets are valid and successfully received.
         \item \textbf{retransmit}: These packets are used to retransmit the data that didn't received an ack, usually this happens when the Echo try to communicate with other Amazon devices (Fire Stick for ex.) but doesn't receive response.
         \item \textbf{app\_data}: These packets are relative to the normal communication of the Echo and can be easily recognized since the communication happens over TLS/SSL protocol and by checking the flag of the considered packet that is equal to 23.
@@ -240,14 +149,42 @@
         \item \textbf{not\_relevant}: We will include in this category all packets that don't match any of the other categories, and are not relevant for our study.
     \end{enumerate}
     It's import to underline that the packets classified as app\_data may include both authorized and not authorized packets.
-    The unauthorized packets include all those packets sent in a context in which no application date should be sent to the Server by considering the environmental variables (no wake word pronounced) and hardware aspects (microphone muted by pressing the relative button); for this reason is important to introduce some features related to these aspects.
+    The unauthorized packets include all those packets sent in a context in which no application date should be sent to the Server by considering the environmental variables (no wake word pronounced) and hardware aspects (microphone muted by pressing the relative button); for this reason is important to introduce some classes related to these aspects.
     The aim is to distinguish three kind of packets:
     \begin{itemize}
         \item \textbf{not\_justified}: packets sent to the Server in a context in which the Echo is unable to send these data by considering the hardware aspects.
-        \item \textbf{justified}: packets sent to the Server without any interaction between the Echo and the Customer, but the Echo is able to record.
+        \item \textbf{justified}: packets sent to the Server without any interaction between the Echo and the Customer, but the Echo is able to listen.
         \item \textbf{expected}: packets sent to the Server since an interaction between the Echo and the Customer happened.
     \end{itemize}
     Clearly, the only allowed packets are those classified as "Expected".
+    \subsection[Consideration on packet]{Consideration on packet analysis}
+    It's important to do some consideration over the analysis / collection phase just described, in fact there are a lot of behavioural pattern that the Echo follow to perfrom some actions:
+    \begin{itemize}
+        \item As introduced in the previous section there are some kind of packets that always follow the same schema in a given interval.
+        These packets may be sent to guarantee the synchronization with the Amazon Alexa application and with the Amazon servers.
+        There are two possible synchronization packets:
+        \begin{enumerate}
+            \item A packet of 100 byte is sent each 30 seconds (30002 milliseconds)
+            \item A packet of 99 byte is sent each 90 seconds (90820 milliseconds)
+        \end{enumerate}
+        The communication always happens using SSL/TLS, so it's impossible to decrypt the content of these message and confirm that is securely a synchronization packet.
+        \item Music stream pattern is dependent on music service used; a stream with Amazon Music always uses a secure connection by using TLS.
+        \begin{figure}[h!]
+            \centering
+            \includegraphics[width=0.8\columnwidth]{img/capture_amazon_music.png}
+            \caption{Captured packets during Amazon Music streaming (Wireshark)}
+            \label{fig:capture_amazon_music}
+        \end{figure}
+
+        Instead, a stream with Spotify makes an HTTP request to Spotify Server that can be captured and replicated
+        \begin{figure}[h!]
+            \centering
+            \includegraphics[width=0.8\columnwidth]{img/capture_spotify.png}
+            \caption{Captured packets during Spotify streaming (Wireshark)}
+            \label{fig:capture_spotify}
+        \end{figure}
+        \item Echo changes server every 2 minutes, for this reason there are a lot of handshake.
+    \end{itemize}
 
 
     \section{Dataset}
@@ -255,7 +192,7 @@
     \begin{enumerate}
         \item \textbf{Microphone mute}: when the hardware button is pressed and the device should be unable to send application data to the server.
         \begin{figure}[h!]
-            \includegraphics[width=\linewidth]{img/alexa_red.jpg}
+            \includegraphics[width=0.8\linewidth]{img/alexa_red.jpg}
             \caption{Echo when the disable microphone button has been pressed.}
             \label{fig:Alexa_red_led}
         \end{figure}
@@ -265,11 +202,36 @@
         \begin{enumerate}
             \item How is the weather today?
             \item When does Liverpool play?
-            \item Add water to the cart.
+            \item Add milk to the shopping list.
+            \item How much is 20 + 20?
         \end{enumerate}
         All these questions or requests expect a response from the Server, so a huge amount of ack will be sent from the device.
-        \item \textbf{Stream of data}: when the user request for a song and the Echo start to stream it.
+        \item \textbf{Streaming}: when the user request for a song and the Echo start to stream it; also in this case a lot of ack packets are sent from the device as response to the fragment of the item to stream (a song for example).
     \end{enumerate}
+	\subsection{Considered features}
+    As introduced in the previous section it's important to collect features related to both hardware and software aspects; let's see in detail which are the considered features with the related meaning:
+    \begin{enumerate}
+        \item \textbf{date}: the date in which the packet has been collected, in the format YYYY-MM-DD hh:mm:ss:ms;
+        \item \textbf{length}: the length of the packet, it includes just the payload (in case of ack packest it's equal to zero);
+        \item \textbf{dstip}: the destination ip, collected to analyze the owner of the server to which the packet is directed;
+        \item \textbf{dstport}: the destination port;
+        \item \textbf{highest\_layer}: the protocol used, in order to parse the protocol into an integer we will use the following mapping:
+        \begin{itemize}
+            \item 0 - SSL
+            \item 1 - TCP
+            \item 2 - DATA
+            \item 3 - HTTP
+        \end{itemize}
+        Notice that all the packets that use other protocol are discarded since them have no meaning for our purpose;
+        \item \textbf{delta}: the time occured from the previous packet of the same stream;
+        \item \textbf{ack\_flag}: the acknowledge flag; it is equal to 1 if the packet contains an ack;
+        \item \textbf{microphone}: the status of the microphone, it is equal to 1 if the microphone is active, 0 otherwise;
+        \item \textbf{content\_type}: the type of content sent, it is valorized only if the packet is sent over SSL;
+        \item \textbf{synchronized}: status of sychronization of the device, it is equal to 1 if the Echo has been previously associated to an account, 0 otherwise.
+    \end{enumerate}
+    Since we want to map every kind of packet in a class, 8 classes have been declared: handshake, syn, ack, retransmit, not\_relevant, justified, not\_justified and expected. 
+	\subsection{Dataset composition}
+	Once we have explained which are the considered features, let's have an overview on the dataset composition by analyzing the features and classes distriburions.
 
 
     \section{Machine learning}
@@ -279,7 +241,7 @@
     \section{Conclusions}
     TODO
 
-    \bibliographystyle{ACM-Reference-Format}
+    \bibliographystyle{plain}
     \bibliography{biblio_ref}
 
 \end{document}
