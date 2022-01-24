@@ -208,7 +208,7 @@
         All these questions or requests expect a response from the Server, so a huge amount of ack will be sent from the device.
         \item \textbf{Streaming}: when the user request for a song and the Echo start to stream it; also in this case a lot of ack packets are sent from the device as response to the fragment of the item to stream (a song for example).
     \end{enumerate}
-	\subsection{Considered features}
+	\subsection{Features}
     As introduced in the previous section it's important to collect features related to both hardware and software aspects; let's see in detail which are the considered features with the related meaning:
     \begin{enumerate}
         \item \textbf{date}: the date in which the packet has been collected, in the format YYYY-MM-DD hh:mm:ss:ms;
@@ -230,9 +230,73 @@
         \item \textbf{synchronized}: status of sychronization of the device, it is equal to 1 if the Echo has been previously associated to an account, 0 otherwise.
     \end{enumerate}
     Since we want to map every kind of packet in a class, 8 classes have been declared: handshake, syn, ack, retransmit, not\_relevant, justified, not\_justified and expected. 
-	\subsection{Dataset composition}
-	Once we have explained which are the considered features, let's have an overview on the dataset composition by analyzing the features and classes distriburions.
+	\subsection{Dataset merging}
+	Since we have collected packets into four different contexts is necessary to merge together all these dataset before to apply any kind of manipulation on data. In particular during the collection phase we have collected 5436 packets when the microphone has been disabled, 39793 packets when the music was streaming (indipendently by the service used), 9374 packets when no wake word has been pronounced and 8027 packets during a normal conversation with the Echo. Clearly, a first overview on these numbers may start thinking that it's totally unbalanced; but we should remember that during the streaming of contents there is an huge amount of ack packets that can be potentially discarded; we will see this operation in the following subsection.
+	\subsection{Avoid NaN values}
+	During a first overview on collected packets it's been noticed that there are some packets in which the content\_type feature is set to NaN.
+	  \begin{figure}[h!]
+            \includegraphics[width=0.8\linewidth]{img/nan_values.png}
+            \caption{NaN values related to the content\_type feature.}
+            \label{fig:nan_values}
+        \end{figure}
+	This problem has been caused by the collecting phase; in fact, as already introduced in the subsection 5.1, this feature is valorized only when we capture an SSL packet, otherwise it is set to NaN. In order to fix this problem, all the existing NaN values for the content\_type feature has been set to 0.0.
+	\subsection{Not relevant features}
+	The dataset contains also instance-specific information, like date and destination ip of the pakcets. Since these values cannot be used during the training phase (otherwise the model will use these values to predict the class of the packets) we need to complitely discard these features by deleting the column from the dataset.
+	\subsection{Dataset analysis}
+	After removed the NaN values and the not relevant features is important to analyze the collected packets in order to understand if them can be already used or exist some other correction that must be applied before the training. The analysis is divided into target and features analysis.
+	\subsubsection{Target class analysis}
+	Let's start the analysis of the target class by understanding how many packets have been collected for each class.
+	\begin{figure}[h!]
+            \includegraphics[width=0.8\linewidth]{img/target_class_distribution.png}
+            \caption{Distribution of target classes.}
+            \label{fig:target_class_distribution}
+        \end{figure}
+	
+It's clear the presence of too many ack packets respect to the other classes; as said before this is caused by the streaming context; in fact when a song is streaming, the Echo will send a lot of ack corresponding to each fraction of the song that has been recieved from the Echo. The total amount of ack packets is 48252, respect to: 4813 for expected; 2888 for syn; 1751 for handshake; 1457 for retransmit; 1361 for not\_justified; 1316 for justified and 792 for not\_relevant. Translated into percentage, the number of ack packets correspond to the 77\% over the total.  In order to make more balanced the overall dataset we will consider just the 5\% of these packets, that is equal to 2413. The deletion of the row is random.
+	\begin{figure}[h!]
+            \includegraphics[width=0.8\linewidth]{img/target_class_distribution_after_del.png}
+            \caption{Distribution of target classes after 95\% ack packets delete.}
+            \label{fig:target_class_distribution_after_del}
+        \end{figure}
+	\subsubsection{Features analysis}
+	After guarantee a good distribution for the target classes, we start our analysis on the features. Let's see the distribution of length of packets in correlation with the target classes.
+	\begin{figure}[h!]
+            \includegraphics[width=0.8\linewidth]{img/length_distribution.png}
+            \caption{Distribution of length in correlation with target classes.}
+            \label{fig:length_distribution}
+        \end{figure}
 
+	It's clear that synchronization and acknowledge packets have a short length compared with the others; in fact these packets have small data within them, a simple text or just a flag. Instead, application data packets such as not justified, justified and expected packets have a variable longer length; in fact these packets are usually used to send voice recording for example. Another important consideration is that there is a small difference between the expected and the justified / not justified packets; the first ones usually have a smaller length, while the others have similar behaviour between each other but the average of length is much higher respect to the expected ones.
+
+Anyway we are not worried about the difficulty for the classifier to distinguish the justified ones from the not justified ones; in fact we know that any justified packet exists with the microphone off (by the assumption done during the collection phase). Notice that this behaviour is not exclusive each other, in fact some not justified packet may exists when the microphone is on and nothing is happening in the external environment.
+	\begin{figure}[h!]
+            \includegraphics[width=0.8\linewidth]{img/justified_not_justified.png}
+            \caption{Distribution of justified and not justified packets in correlation with microphone on/off.}
+            \label{fig:justified_not_justified}
+        \end{figure}
+
+Till now, we did not talk about the synchronized feature; this feature figure out the state of synchronization of the device (if it is associated with an Amazon account or not). The problem here is that an Echo cannot work if it is not synchronized with any account, in fact if we plot a pie chart of the distribution of this feature we can easily see that all the captured packets have been captured when the device was synchronized. 
+\begin{figure}[h!]
+            \includegraphics[width=0.8\linewidth]{img/syn_not_syn.png}
+            \caption{Distribution of synchronized packets.}
+            \label{fig:syn_not_syn}
+        \end{figure}
+
+For this reason we have to delete also this feature (it isn't relevant for our purpose).
+
+One of the last analysis regards the distribution of ack flag; in fact this flag seems quite always set to 1 (usually a communication packets may contains also an acknowledge of the previous recieved packet) but we decide to mantain this feature since there is a 10\% of packets in which this flag is set to 0, so it is useful for the training.
+\begin{figure}[h!]
+            \includegraphics[width=0.8\linewidth]{img/ack_no_ack.png}
+            \caption{Distribution of ack packets.}
+            \label{fig:ack_not_ack}
+        \end{figure}
+
+Last analysis regard the distribution of highest\_layer feature. Here we have a lot of SSL packets because this is the major protocol used for the communication between the Echo and the Server
+	\begin{figure}[h!]
+            \includegraphics[width=0.8\linewidth]{img/highest_layer.png}
+            \caption{Distribution of highest layer.}
+            \label{fig:highest_layer}
+        \end{figure}
 
     \section{Machine learning}
     TODO
