@@ -130,8 +130,13 @@
 
 
     \section{Packets analysis}
-    In order to create a good dataset we will classify the packets sent by the Echo.
-    In particular is possible to classify the type of packet by looking at flags, packet size and protocol used.
+    In order to analyze the packets we need to create some kind of proxy between the Echo and the Router (that will send the packets to the server); for this reason the Echo will be connected directly to the computer by the Windows mobile hotspot.
+
+    \subsection{Python script}
+    The step described above is necessary since we need to execute a python script on the same machine that recieve the packets from the Echo. In particular, the script will intercept every packet sent by the Echo using PyShark library, that is a library developed in python based on the software Wireshark, able to intercept every kind of packet and retrieve useful information about them. The first step before to use the library is to configure it by setting up the preferred virtual network card (in our case will be that on which is run the hotspot) and the device we want to sniff the packets. Once these two parameters have been declared, the sniffing can start: we will collect only those packets sent by the Echo, by discarding the others (those recieved from the Server); this choice it's been taken since we don't want to block or discover anything about the recieved packets, we want only to block those packets that shouldn't be sent. A simple python function is called every time a new packet has been sent, it process the packet by checking at: protocol, flags, content type and length. During the processing phase, the packets are classified and inserted into the relative dataset (one for each context in which the script has been executed). This classification is just relative, a manual phase is necessary in order to detect errors.
+
+    \subsection{Classification}
+    Is possible to classify the type of packet by looking at flags, packet size and protocol used.
     There are different types of packet that will later be included in the dataset as classes:
     \begin{enumerate}
         \item \textbf{handshake}: At the beginning of each new SSL/TLS communication between the Echo and the Server there are different packets exchanged in order to establish a secure communication.
@@ -273,17 +278,29 @@
         \label{fig:length_distribution}
     \end{figure}
 
-    It's clear that synchronization and acknowledge packets have a short length compared with the others; in fact these packets have small data within them, a simple text or just a flag. Instead, application data packets such as not justified, justified and expected packets have a variable longer length; in fact these packets are usually used to send voice recording for example.
+    It's clear that synchronization and acknowledge packets have a short length compared with the others; in fact these packets have small data within them, a simple text or just a flag.
+    Instead, application data packets such as not justified, justified and expected packets have a variable longer length; in fact these packets are usually used to send voice recording for example.
     A more detailed view of the length of these packets can be seen by plotting the length grouped by the category.
     \begin{figure}[h!]
-        \includegraphics[width=\linewidth]{img/app_data_distribution.png}
-        \caption{Distribution of length of application data packets grouped by class.}
-        \label{fig:app_data_distribution}
+        \includegraphics[width=0.8\linewidth]{img/justified_distribution.png}
+        \caption{Distribution of length of justified packets.}
+        \label{fig:justified_distribution}
+    \end{figure}
+    \begin{figure}[h!]
+        \includegraphics[width=0.8\linewidth]{img/not_justified_distribution.png}
+        \caption{Distribution of length of not justified packets.}
+        \label{fig:not_justified_distribution}
+    \end{figure}
+    \begin{figure}[h!]
+        \includegraphics[width=0.8\linewidth]{img/expected_distribution.png}
+        \caption{Distribution of length of expected packets.}
+        \label{fig:expected_distribution}
     \end{figure}
 
-
     Another important consideration is that there is a small difference between the expected and the justified / not justified packets; the first ones usually have a smaller length, while the others have similar behaviour between each other but the average of length is much higher respect to the expected ones.
-    Anyway we are not worried about the difficulty for the classifier to distinguish the justified ones from the not justified ones; in fact we know that any justified packet exists with the microphone off (by the assumption done during the collection phase). Notice that this behaviour is not exclusive each other, in fact some not justified packet may exists when the microphone is on and nothing is happening in the external environment.
+    Anyway we are not worried about the difficulty for the classifier to distinguish the justified ones from the not justified ones; in fact we know that any justified packet exists with the microphone off (by the assumption done during the collection phase).
+
+    Notice that this behaviour is not exclusive each other, in fact some not justified packet may exists when the microphone is on and nothing is happening in the external environment.
     \begin{figure}[h!]
         \includegraphics[width=0.8\linewidth]{img/justified_not_justified.png}
         \caption{Distribution of justified and not justified packets in correlation with microphone on/off.}
@@ -299,9 +316,7 @@
         \label{fig:syn_not_syn}
     \end{figure}
 
-    For this reason we have to delete also this feature (it isn't relevant for our purpose).
-
-    One of the last analysis regards the distribution of ack flag; in fact this flag seems quite always set to 1 (usually a communication packets may contains also an acknowledge of the previous recieved packet) but we decide to mantain this feature since there is a 10\% of packets in which this flag is set to 0, so it is useful for the training.
+    For this reason we have to delete also this feature (it isn't relevant for our purpose). One of the last analysis regards the distribution of ack flag; in fact this flag seems quite always set to 1 (usually a communication packets may contains also an acknowledge of the previous recieved packet) but we decide to mantain this feature since there is a 10\% of packets in which this flag is set to 0, so it is useful for the training.
 
 
     \begin{figure}[h!]
@@ -312,7 +327,7 @@
 
     Last analysis regard the distribution of highest\_layer feature. Here we have a lot of SSL packets because this is the major protocol used for the communication between the Echo and the Server; while TCP protocol is used for the acknowledge packets and the others (data and http) are used only when a song is requested to the spotify server or for others synchronization features.
     \begin{figure}[h!]
-        \includegraphics[width=0.8\linewidth]{img/highest_layer.png}
+        \includegraphics[width=0.6\linewidth]{img/highest_layer.png}
         \caption{Distribution of highest layer.}
         \label{fig:highest_layer}
     \end{figure}
