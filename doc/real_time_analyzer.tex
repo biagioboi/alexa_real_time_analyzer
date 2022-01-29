@@ -71,9 +71,9 @@
     \begin{abstract}
         Nowadays, the introduction of home virtual assistents like Alexa Echo or Google Home became a practice, just considering that over 27\% of families owns one.
 
-        It's obvious that those devices simplified the life by creating a smart house with few money; but what's the impact these devices have on people privacy?
+        It's obvious that those devices simplify the life by creating a smart house with few money; but what's the impact these devices have on people's privacy?
         There are a lot of cases in the United States in which the judge asked to Amazon to provide the recording done by the Echo in order to find helpful
-        evidences for the case; so, the question is: "It's possible to prevent the sending of sensible informations to the servers when the weak word is not pronunced?"
+        evidences for the case; so, the question is: "It's possible to prevent the sending of sensible informations to the servers when the wake word is not pronunced?"
 
         In this project we will profile each packet exchanged between the Alexa Echo and the Server in order to classify the nature of the packets and consequentially we will use a machine learning model to discover when the Echo is sending an inappropriate packet.
     \end{abstract}
@@ -114,7 +114,7 @@
     The Alexa architecture isn't really easy to explain, we will resume just the keypoint in order to better understand the main functionalities for our purpose.
     \begin{enumerate}
         \item Alexa is always in listening waiting for the wake word to be pronunced to start the recording of the voice;
-        \item From the weak word, till the end of commands, Alexa will record the speech and partially sends it to Alexa Voice Service, that can be considered as the brain of Alexa;
+        \item From the wake word, till the end of commands, Alexa will record the speech and partially sends it to Alexa Voice Service, that can be considered as the brain of Alexa;
         \item Alexa Voice Service will process the audio using Natural Language Processing and Natural Language Understanding in order to retrieve a response for the given request.
         \begin{enumerate}
             \item Natural Language Processing (NLP) improve the Word Segmentation that separate a chunk of continuous text into separate words.
@@ -125,7 +125,7 @@
     All the communications between the Echo and the Server are secured by using an SSL/TLS encryption schema.
     In particular, the Echo looks for an available Amazon Server each 3 minutes and then establish a connection (by following the SSL Handshake).
     Once the communication has been initialized it starts to send different packets of different size always encrypted; clearly, these pakcets may contains both authorized and unauthorized data.
-    It's important to underline that all the recordings are available on the Amazon platform and can be reproduced and deleted whenever the user wants only by accessing to the platform and this guarantee more transparency to the user that can directly handle all the recordings.
+    It may be important to underline that all the recordings are available on the Amazon platform and can be reproduced and deleted whenever the user wants only by accessing to the platform and this guarantee more transparency to the user that can directly handle all the recordings.
     The point is that here we found only the recordings done by the Echo in an authorized way (when the wake word it's been pronounced), but this doesn't imply that some other recordings can exist and be stored in hidden way.
 
 
@@ -153,7 +153,7 @@
         In particular, we will include in this class all the communication packets that include also recording of voice occurred during the conversation between the Echo and the final costumer.
         \item \textbf{not\_relevant}: We will include in this category all packets that don't match any of the other categories, and are not relevant for our study.
     \end{enumerate}
-    It's import to underline that the packets classified as app\_data may include both authorized and not authorized packets.
+    It may be import to underline that the packets classified as app\_data may include both authorized and not authorized packets.
     The unauthorized packets include all those packets sent in a context in which no application date should be sent to the Server by considering the environmental variables (no wake word pronounced) and hardware aspects (microphone muted by pressing the relative button); for this reason is important to introduce some classes related to these aspects.
     The aim is to distinguish three kind of packets:
     \begin{itemize}
@@ -337,12 +337,68 @@
     Once the analysis of the dataset is ended we can start the study of the machine learning approaches in order to retrieve which is more suitable for our purpose.
 
     \subsection{Data balancing}
-    Before to normalize the data and apply other machine learning techniques we need to balance the dataset; as we have seen in the previous section there is a small unbalancing between expected and synchronization packets respect to the others; for this reason we will apply a SMOTE (Synthetic Minority Oversampling Technique) in order to oversample the packets of the minority classes. SMOTE will repeat the oversampling procedure till the minority classes will reach the proportion of the majority classes. After SMOTE applied, we have a dataset composed by 4813 packets for each class.
+    Before normalizing the data and apply other machine learning techniques we need to balance the dataset; as we have seen in the previous section there is a small unbalancing between expected and synchronization packets respect to the others; for this reason we will apply a SMOTE (Synthetic Minority Oversampling Technique) in order to oversample the packets of the minority classes. SMOTE will repeat the oversampling procedure till the minority classes will reach the proportion of the majority classes. After SMOTE applied, we have a dataset composed by 4813 packets for each class.
 
     \subsection{Dataset splitting and standardization}
     Once we have balanced the dataset, we need to split it into testing and training dataset. The splitting is done by using the \textit{train\_test\_split} technique, which is implemented into the sklearn library and split the dataset using a randomic approach by starting from test\_size and random\_state parameter. For our purpose we set the test\_size to 0.3, which means the 30\% over the total and random\_state equal to 6. After that the splitting is completed, we need to standardize the existing values in order to normally distribute them, in particular a standard scaler has been applied.
 
     \subsection{Features evaluation}
+    TODO
+    \begin{figure}[h!]
+        \includegraphics[width=\linewidth]{img/important_features.png}
+        \caption{Report of features evaluation.}
+        \label{fig:important_features}
+    \end{figure}
+
+    \subsection{Multiclass classification}
+    Since we need to classify instances into one of eight classes we need a multiclass classification, let's see in a more detailed way the possible strategies.
+
+    \subsubsection{Trasformation to binary}
+    One possible strategy is to transform the problem of multiclass classification to multiple binary classification problems; this transformation can be done in two ways.
+
+    \textbf{One-vs-rest}: we will create a single classifier for each class and the output will be a real-valued confidence score for its decision. The \textit{sklearn.multiclass} library will help us with the creation of this classifier; in particular the class OneVsRestClassifier will create a classifier for each class. The constructor needs an estimator that is an object implementing fit and decision functions; for our purpose we will use a Linear Support Vector Classification (SVC) with random\_state parameter equal to 6.
+    \begin{figure}[h!]
+        \includegraphics[width=\linewidth]{img/one_vs_rest_classifier.png}
+        \caption{Report of one vs rest classifier.}
+        \label{fig:one_vs_rest_classifier}
+    \end{figure}
+    It's clear how the classifier easly obtains an accurate precision for acknowledge, handshake, not\_relevant, retransmit and synchronization packets due to their easly identification by using the flags, the content type and the highest layer features. While for the application data packets (justified, not justified and expected) the classifier it's not able to easily identify the class due to the similar characteristics of these packets. Other problems related to this strategy comes from the definition of this kinf of classifier; since we create a single classifier for each class and the prediction happens by using a binary classification; there is an unbalanced distribution because the set of positives in much smaller than the positive ones.
+
+    \textbf{One-vs-one}: the other possible strategy is one-vs-one; the implementation is quite similar to one-vs-rest approach but there is a difference on the reduction of the overall training set; it creates \(k (k-1)/2\) classifiers, where k is the number of existing classes, always by using an esimator object, and each of them recieves the samples of a pair of classes of the original training set and must learn to distinghuish these two calsses. At prediction time, all the \(k (k-1)/2\) classifiers will recieve an unseen sample and the class that recieves the highest number of votes will be predicted from the overall classifier.
+    \begin{figure}[h!]
+        \includegraphics[width=\linewidth]{img/one_vs_one_classifier.png}
+        \caption{Report of one vs one classifier.}
+        \label{fig:one_vs_one_classifier}
+    \end{figure}
+    Here there is a better precision for the expected class but is not enough to say that this one is the best classifier.
+
+    \subsubsection{Extension from binary}
+    The other possible strategy to solve the problem of multiclass classification is using existing binary classifiers to solve multiclass problems.
+
+    \textbf{Neural networks}: the main differences between neural networks for binary and multiclass classification are:
+    \begin{itemize}
+        \item \textbf{Output layer}: instead of using an output layer of just one neuron, we will use one neuron for each class. Another modification to apply on the output layer is the activation function, using the \textit{softmax} function (instead of \textit{sigmoid}) each neuron yields a probability for corresponding class.
+        \item \textbf{Loss function}: instead of using \textit{binary\_crossentropy}, we will use the \textit{categorical\_crossentropy} that penalizes error in the probabilities predicted by a multiclass classifier (while the \textit{binary} does for binary classifier).
+    \end{itemize}
+    Once underlined the main differences we need to adapt the dataset to be compatible with the neural network; in particular we need to encode the label (classes) since neural network doesn't work with string but just with integer. First, using the class \textit{LabelEncoder} we map each label into an integer; then we create the relative matrix using the \textit{np\_utils.to\_categorical} method which, for each row, creates a list of 0, except for the position relative to the integer of the relative label. The method return a matrix composed of n row and m columns; where n is the number of samples and m is the number of classes.
+    The sequential model used for the neural network is composed by four layers (one for input and one for output included). After different observations seems that 250 is the best number of epochs for our classifier.
+    \begin{figure}[h!]
+        \includegraphics[width=\linewidth]{img/nn_classifier.png}
+        \caption{Report of Neural Network classifier.}
+        \label{fig:nn_classifier}
+    \end{figure}
+    The result highlights that till now the Neural Network classifier is better than the others. In particular, it shows a big difference between the expected and the not justified and justified packets; that is what we need for our purpose.
+
+    \textbf{Naive Bayes}: this approach is based on the probability, there are different applications of Naive Bayes algorithm. Each of these application can be run without any parameter, but if a prior probability is defined, it will fit better. Kernel Density Estimation is a non-parametric way to estimate the probability density function of a random variable. We will use a Gaussian Naive Bayes classifier for our purpose.
+    \begin{figure}[h!]
+        \includegraphics[width=\linewidth]{img/nb_classifier.png}
+        \caption{Report of Naive Bayes classifier.}
+        \label{fig:nb_classifier}
+    \end{figure}
+    It's clear how the results are worst than the Neural Network; this is also caused by the fact that Gaussian cannot work with negative values, which exist in our normalized dataset; the only accepted dataset is the original one, on which there is any kind of normalization technique.
+
+    \textbf{Decision Trees}: the goal here is to create a model that predicts the value of a target variable by learning simple decision rules inferred from the data features.
+    TODO
 
 
     \section{Conclusions}
