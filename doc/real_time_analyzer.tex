@@ -75,7 +75,7 @@
         There are a lot of cases in the United States in which the judge asked to Amazon to provide the recording done by the Echo in order to find helpful
         evidences for the case; so, the question is: "It's possible to prevent the sending of sensible informations to the servers when the wake word is not pronunced?"
 
-        In this project we will profile each packet exchanged between the Alexa Echo and the Server in order to classify the nature of the packets and consequentially we will use a machine learning model to discover when the Echo is sending an inappropriate packet.
+        In this project we will profile each packet exchanged between the Alexa Echo and the Server in order to classify the nature of the packets and consequentially we will use a machine learning model to discover if exists a clear correlation between the characteristics of the packet and the classification done.
     \end{abstract}
 
     \keywords{data analytics, alexa, packets profiling}
@@ -111,7 +111,7 @@
 
 
     \section{Alexa architecture \& security}
-    The Alexa architecture isn't really easy to explain, we will resume just the keypoint in order to better understand the main functionalities for our purpose.
+    The Alexa architecture isn't easy to explain, we will resume the keypoint in order to better understand the main functionalities for our purpose.
     \begin{enumerate}
         \item Alexa is always in listening waiting for the wake word to be pronunced to start the recording of the voice;
         \item From the wake word, till the end of commands, Alexa will record the speech and partially sends it to Alexa Voice Service, that can be considered as the brain of Alexa;
@@ -123,14 +123,14 @@
         \item Depending on the sent command, the Voice Service will take an action (turn on the light) or send the information back to the device and Alexa may speech.
     \end{enumerate}
     All the communications between the Echo and the Server are secured by using an SSL/TLS encryption schema.
-    In particular, the Echo looks for an available Amazon Server each 3 minutes and then establish a connection (by following the SSL Handshake).
-    Once the communication has been initialized it starts to send different packets of different size always encrypted; clearly, these pakcets may contains both authorized and unauthorized data.
+    More throughly, the Echo looks for an available Amazon Server each 2 minutes and then establish a connection (by following the SSL Handshake).
+    Once the communication has been initialized it starts to send different encrypted packets of different size; clearly, these pakcets may contains both authorized and unauthorized data.
     It may be important to underline that all the recordings are available on the Amazon platform and can be reproduced and deleted whenever the user wants only by accessing to the platform and this guarantee more transparency to the user that can directly handle all the recordings.
     The point is that here we found only the recordings done by the Echo in an authorized way (when the wake word it's been pronounced), but this doesn't imply that some other recordings can exist and be stored in hidden way.
 
 
     \section{Packets analysis}
-    In order to analyze the packets we need to create some kind of proxy between the Echo and the Router (that will send the packets to the server); for this reason the Echo will be connected directly to the computer by the Windows mobile hotspot.
+    In order to analyze the packets we need to create some kind of proxy between the Echo and the Router (that will send the packets to the server); for this reason the Echo it's connected directly to the computer using the Windows mobile hotspot.
 
     \subsection{Python script}
     The step described above is necessary since we need to execute a python script on the same machine that recieve the packets from the Echo. In particular, the script will intercept every packet sent by the Echo using PyShark library, that is a library developed in python based on the software Wireshark, able to intercept every kind of packet and retrieve useful information about them. The first step before to use the library is to configure it by setting up the preferred virtual network card (in our case will be that on which is run the hotspot) and the device we want to sniff the packets. Once these two parameters have been declared, the sniffing can start: we will collect only those packets sent by the Echo, by discarding the others (those recieved from the Server); this choice it's been taken since we don't want to block or discover anything about the recieved packets, we want only to block those packets that shouldn't be sent. A simple python function is called every time a new packet has been sent, it process the packet by checking at: protocol, flags, content type and length. During the processing phase, the packets are classified and inserted into the relative dataset (one for each context in which the script has been executed). This classification is just relative, a manual phase is necessary in order to detect errors.
@@ -343,12 +343,14 @@
     Once we have balanced the dataset, we need to split it into testing and training dataset. The splitting is done by using the \textit{train\_test\_split} technique, which is implemented into the sklearn library and split the dataset using a randomic approach by starting from test\_size and random\_state parameter. For our purpose we set the test\_size to 0.3, which means the 30\% over the total and random\_state equal to 6. After that the splitting is completed, we need to standardize the existing values in order to normally distribute them, in particular a standard scaler has been applied.
 
     \subsection{Features evaluation}
-    TODO
+    As we will see below, the feature evaluation it's been done by applying a random forest classifier (which fits better for our purpose) and then by analyzing the \textit{feature\_importances} attribute of the classifier.
     \begin{figure}[h!]
         \includegraphics[width=\linewidth]{img/important_features.png}
         \caption{Report of features evaluation.}
         \label{fig:important_features}
     \end{figure}
+The report shows that the length it's the most useful feature of the overall dataset as we did previously see during the analysis phase of the project; in fact it depends on the kind of packet, meaning that there is a clear correlation between each other. The second important feature is the content type, that is useful to distinguish the application data from the hanshake packets.
+A further important result highlited from this graph is the low importance of ack flag, this because there are a lot of packets classified as application data that have the ack flag equal to 1 (due to architecture of TLS communication which implies the existence of an ack packet together with the application data) that makes difficult for the classifier understand which are the simple ack packets and which are application data ones.
 
     \subsection{Multiclass classification}
     Since we need to classify instances into one of eight classes we need a multiclass classification, let's see in a more detailed way the possible strategies.
@@ -397,12 +399,18 @@
     \end{figure}
     It's clear how the results are worst than the Neural Network; this is also caused by the fact that Gaussian cannot work with negative values, which exist in our normalized dataset; the only accepted dataset is the original one, on which there is any kind of normalization technique.
 
-    \textbf{Decision Trees}: the goal here is to create a model that predicts the value of a target variable by learning simple decision rules inferred from the data features.
-    TODO
-
+    \textbf{Decision Trees}: the goal here is to create a model that predicts the value of a target variable by learning simple decision rules inferred from the data features. One application of Decision Tree is the Random Forest classifier, which fits a number of decision tree classifiers on various sub-samples of the dataset and uses averaging to improve the predictive accuracy and control over-fitting. We need to define the number of trees in the forest, by default it is set to 100 but after some experiments seems that 500 perform better.
+In this case we can use the scaled dataset but in order to show the results a label parsing is needed (from string to integer).
+    \begin{figure}[h!]
+        \includegraphics[width=\linewidth]{img/decision_tree.png}
+        \caption{Decision Tree classifier.}
+        \label{fig:decision_tree}
+    \end{figure}
+The results seem to be better than the Neural Network, this behaviour is justified from the definition of the random forest; it tries to reduce the overfitting, that is really useful for our data (since we have variable length for the same kind of packets). The percentage of accuracy of the three application data packets it's increased and we can easily say that this is the best classifier for our purpose.
 
     \section{Conclusions}
-    TODO
+    The aim of the project has been achieved; the results confirm the possibility to distinguish between different kind of packets. In particular, as introduced during the collection phase, both the justified and not justified packets shouldn't be sent from the Echo (the first ones because there is no motivation for the Echo to sent them also if it can record the voice due to the microphone status; while the second ones shouldn't be sent because the device is not listening the voice); a more accurate analysis on the nature of these packets can be done, may be possible that the packets sent when the device has microphone off are allowed since are simple synchronization packets without a clear pattern. Anyway, this study shows that there is a clear behaviour of the expected packets respect to the others; these packets have a lower payload length (seem that the Echo sent an huge amount of short length packets instead of small amount of long length when the communication is "authorized").
+The final Random Forest classifier, together with a script that take into account the consideration done during the collection phase, can be applied on a proxy to block all the packets classified as justified and not justified and see if the Echo continues to work well or there is some configuration error.
 
     \bibliographystyle{plain}
     \bibliography{biblio_ref}
