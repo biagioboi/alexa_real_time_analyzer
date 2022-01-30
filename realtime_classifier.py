@@ -44,7 +44,10 @@ def filter_packets(p, mac_add, microphone, model, scaler):
         df = pd.DataFrame(record, index=[0])
         scaled_value = scaler.transform(df.values)
         result = model.predict(scaled_value)
-        print(result[0])
+        if result[0] in ["not_justified", "justified"]:
+            print("Deny")
+        else:
+            print("Allow")
     except AttributeError:
         print(p[highest_layer].field_names)
 

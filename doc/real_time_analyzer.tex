@@ -408,6 +408,15 @@ In this case we can use the scaled dataset but in order to show the results a la
     \end{figure}
 The results seem to be better than the Neural Network, this behaviour is justified from the definition of the random forest; it tries to reduce the overfitting, that is really useful for our data (since we have variable length for the same kind of packets). The percentage of accuracy of the three application data packets it's increased and we can easily say that this is the best classifier for our purpose.
 
+\section{Real Time Classifier}
+Once we found a way to classify the packets by using a random forest classifier, we can use it together with a python script in order to classify the packets in real time. The script is simlar to that one defined during the collection phase; there is a sniffer that capture all the packets sent from the Echo and using the classifier decides the category of the packet.
+By applying a simple check on the result of the prediction we can block or allow the packet (if it's equal to not justified or justified we will block it).
+\begin{figure}[h!]
+        \includegraphics[width=\linewidth]{img/real_time_script.png}
+        \caption{Piece of real time analyzer.}
+        \label{fig:real_time_script}
+    \end{figure}
+
     \section{Conclusions}
     The aim of the project has been achieved; the results confirm the possibility to distinguish between different kind of packets. In particular, as introduced during the collection phase, both the justified and not justified packets shouldn't be sent from the Echo (the first ones because there is no motivation for the Echo to sent them also if it can record the voice due to the microphone status; while the second ones shouldn't be sent because the device is not listening the voice); a more accurate analysis on the nature of these packets can be done, may be possible that the packets sent when the device has microphone off are allowed since are simple synchronization packets without a clear pattern. Anyway, this study shows that there is a clear behaviour of the expected packets respect to the others; these packets have a lower payload length (seem that the Echo sent an huge amount of short length packets instead of small amount of long length when the communication is "authorized").
 The final Random Forest classifier, together with a script that take into account the consideration done during the collection phase, can be applied on a proxy to block all the packets classified as justified and not justified and see if the Echo continues to work well or there is some configuration error.
